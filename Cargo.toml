@@ -1,0 +1,7 @@
+[package]
+name = "toolchain_up"
+version = "0.1.0"
+authors = ["Purple Hair Rust Bard <AshantiMutinta@gmail.com>"]
+edition = "2018"
+
+[dependencies]
