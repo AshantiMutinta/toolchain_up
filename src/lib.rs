@@ -15,9 +15,9 @@ pub fn upgrade_toolchain_if_outdated(pinned_toolchain: String) -> DefaultResult<
     }
 }
 fn run_rustup_command<'a>(
-    args: &'a Vec<&str>,
-    on_success: &'a Fn() -> DefaultResult<()>,
-    on_fail: &'a Fn() -> DefaultResult<()>,
+    args: &'a [&str],
+    on_success: &'a dyn Fn() -> DefaultResult<()>,
+    on_fail: &'a dyn Fn() -> DefaultResult<()>,
 ) -> DefaultResult<()> {
     let mut command = Command::new("rustup");
     args.iter().for_each(|s| {
@@ -43,7 +43,7 @@ fn upgrade_toolchain(pinned_toolchain: &str) -> DefaultResult<()> {
     let complete_pinned_toolchain = &*vec![pinned_toolchain, &*default_host].join("-");
 
     //install toolchain
-    let toolchain_install_args = vec!["toolchain", "install", complete_pinned_toolchain.clone()];
+    let toolchain_install_args = vec!["toolchain", "install", complete_pinned_toolchain];
     run_rustup_command(
         &toolchain_install_args,
         &|| Ok(println!("toolchain installed")),
@@ -68,7 +68,7 @@ fn upgrade_toolchain(pinned_toolchain: &str) -> DefaultResult<()> {
 
 fn get_default_host() -> DefaultResult<String> {
     let default_host_unsanitized = extract_from_rustup("Default host")?;
-    let split_hosts = default_host_unsanitized.split(" ").collect::<Vec<&str>>();
+    let split_hosts = default_host_unsanitized.split(' ').collect::<Vec<&str>>();
     let mut split_string = split_hosts.iter();
     split_string.next();
     split_string.next();
@@ -82,7 +82,7 @@ fn get_default_host() -> DefaultResult<String> {
 
 fn get_default_toolchain() -> DefaultResult<String> {
     let default_host_unsanitized = extract_from_rustup("(default")?;
-    let split_hosts = default_host_unsanitized.split(" ").collect::<Vec<&str>>();
+    let split_hosts = default_host_unsanitized.split(' ').collect::<Vec<&str>>();
 
     let mut split_string = split_hosts.iter();
     Ok(String::from(
@@ -95,9 +95,9 @@ fn get_default_toolchain() -> DefaultResult<String> {
 
 fn get_override_toolchain() -> DefaultResult<String> {
     let default_host_unsanitized = extract_from_rustup("(directory override")?;
-    let split_hosts = default_host_unsanitized.split(" ").collect::<Vec<&str>>();
+    let split_hosts = default_host_unsanitized.split(' ').collect::<Vec<&str>>();
 
-    if split_hosts.len() > 0 {
+    if !split_hosts.is_empty() {
         let mut split_string = split_hosts.iter();
         Ok(String::from(
             *split_string
@@ -118,7 +118,7 @@ fn extract_from_rustup(rustup_show_match: &str) -> DefaultResult<String> {
         .stdout;
     let std_out = String::from_utf8_lossy(&rustup_result);
     let command_split = std_out
-        .split("\n")
+        .split('\n')
         .filter(|s| s.contains(rustup_show_match))
         .collect::<Vec<&str>>();
     let command_result: &str = command_split
