@@ -70,11 +70,9 @@ fn get_default_host() -> DefaultResult<String> {
     let default_host_unsanitized = extract_from_rustup("Default host")?;
     let split_hosts = default_host_unsanitized.split(' ').collect::<Vec<&str>>();
     let mut split_string = split_hosts.iter();
-    split_string.next();
-    split_string.next();
     Ok(String::from(
         *split_string
-            .next()
+            .nth(2)
             .clone()
             .ok_or_else(|| "Could not get default-host")?,
     ))
@@ -117,13 +115,9 @@ fn extract_from_rustup(rustup_show_match: &str) -> DefaultResult<String> {
         .map_err(|_| "Could not run rustup command".to_string())?
         .stdout;
     let std_out = String::from_utf8_lossy(&rustup_result);
-    let command_split = std_out
+    let command_result: &str = std_out
         .split('\n')
-        .filter(|s| s.contains(rustup_show_match))
-        .collect::<Vec<&str>>();
-    let command_result: &str = command_split
-        .iter()
-        .next()
+        .find(|s| s.contains(rustup_show_match))
         .ok_or_else(|| "Could not extract information from rustup")?;
     Ok(String::from(command_result))
 }
